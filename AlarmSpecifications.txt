@@ -1,0 +1,11 @@
+// Frequency isn't defined here because it generates alarms for a range of frequencies
+HIGH:
+	Pulse Duration: 125
+	Wait Duration: 50
+MEDIUM:
+	Pulse Duration: 75
+	Wait Duration: 80
+LOW:
+	Pulse Duration: 50
+	Wait Duration: 100
+// Must be defined in this order
