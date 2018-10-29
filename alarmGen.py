@@ -53,15 +53,15 @@ def readParam(path):
 		lines = file.readlines()
 	file.close
 	params = []
+	i = 0
 	while i < len(lines):
 		raw = lines[i].split()
 		if raw[0] == "HIGH:" or raw[0] == "MEDIUM:" or raw[0] == "LOW:":
-			splitt = line[i+1].split()
-			pulse = splitt[len(splitt)-1]
-			splitt = line[i + 2].split()
-			wait = splitt[len(splitt)-1]
+			splitt = lines[i+1].split()
+			pulse = int(splitt[len(splitt)-1])
+			splitt = lines[i + 2].split()
+			wait = int(splitt[len(splitt)-1])
 			params.append([pulse, wait])
-			i += 3
 		i += 1
 	return params
 
@@ -121,7 +121,7 @@ def lowPattern(signal, freq, pulseDur, wDur):
 	maudio = []
 	srate = sampleRate
 	vol = 0.75
-	name = genName(signal, int(freq), 0)
+	name = genName(signal, int(freq), -1)
 	maudio += sig(signal, pulseDur, srate, vol, freq)
 	maudio += appendSilence(wDur, srate)
 	maudio += sig(signal, pulseDur, srate, vol, freq)
@@ -130,10 +130,29 @@ def lowPattern(signal, freq, pulseDur, wDur):
 
 def genName(signal, freq, priority):
 	if(signal):
-		name = "multiSquare_"+str(freq)+"Hz_"+prior[priority]
+		fname = "multiSquare_"+str(freq)+"Hz_"+prior[priority]
 	else:
-		name = "multiSine_"+str(freq)+"Hz_"+prior[priority]
-	return name
+		fname = "multiSine_"+str(freq)+"Hz_"+prior[priority]
+	directory = "alarms/"+prior[priority]+"/"
+	if(not os.path.isdir(os.getcwd()+"/"+directory)):
+		os.makedirs(directory)
+	name = directory+fname
+	i = 0
+	almost = duplicateNames(name, i)
+	file_name = almost+".wav"
+	return file_name
+
+def duplicateNames(name, i):
+	if(os.path.isfile(name+".wav")):
+		i += 1
+		if(i == 1):
+			name = name+"_n"+str(i)
+		else:
+			split = name.split("_n")
+			name = split[0]+"_n"+str(i)
+		return duplicateNames(name, i)
+	else:
+		return name
 
 def appendComboSquarewave(dur, srate, vol, freq):
 	audio = []
@@ -178,12 +197,7 @@ def squareFunc(vol, freq, srate, x):
 	y = (2*vol/math.pi)*math.atan(math.sin((2*math.pi*freq) * (x/srate) ))
 	return y
 
-def saveWav(audio, srate, file_name, priority):
-	directory = "alarms/"+prior[priority]+"/"
-	if(os.path.isdir(os.getcwd()+"/"+directory)):
-		name = directory+file_name+".wav"
-	else:
-		name = file_name+".wav"
+def saveWav(audio, srate, name, priority):
 	wav_file=wave.open(name,"w")
 	nchannels = 1
 	sampwidth = 2
